@@ -81,7 +81,8 @@ function createPeerConnection() {
     callerConnection?.addTrack(track, webcamStream as MediaStream)
   })
   
-  // 监听ice候选信息，创建offer后会触发
+  // 监听ice候选信息，本地代理创建SDP Offer并调用 setLocalDescription(offer) 后触发
+  // 一般来说是通过信令服务器将候选信息发送给远端
   callerConnection.onicecandidate = function (event) {
     console.log('ice candidate event', event)
     if (event.candidate) {
@@ -89,7 +90,7 @@ function createPeerConnection() {
       calleeConnection?.addIceCandidate(event.candidate?.toJSON())
     }
   }
-  // 接收方监听是否有媒体流进入
+  // 监听远方是否有媒体流进入
   calleeConnection.ontrack = function (event) {
     // 视频track才添加进video
     if (event.track.kind === 'video') {
@@ -99,10 +100,21 @@ function createPeerConnection() {
     }
   }
   
+  // 发起offer，建立连接
   createOffer()
 }
 
 // 模拟创建offer
+/**
+ A                                                                        B
+ A.createOffer()                                                           
+ |                                                                   
+ A.setLocalDescription() -------发送offer(触发icecandidate)------->       B.setRemoteDescription()
+                                                                                    |
+                                                                         B.createAnswer()
+                                                                                    |
+ A.setRemoteDescription()  <------发送answer--------                      B.setLocalDescription()
+ */
 async function createOffer() {
   if (!callerConnection || !calleeConnection) return
   // 呼叫方创建 offer
