@@ -81,10 +81,10 @@ function connect(evt: MouseEvent) {
       case 'message':
         msgList.push(msg)
         break
-      case 'offer':
+      case 'video-offer':
         handleOfferMsg(msg)
         break
-      case 'answer':
+      case 'video-answer':
         handleAnswerMsg(msg)
         break
       case 'new-ice-candidate':
